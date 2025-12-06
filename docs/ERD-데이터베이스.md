@@ -17,7 +17,6 @@ erDiagram
     ORDER_SUMMARY  ||--o{ ORDER_ITEM    : "has"
     ORDER_SUMMARY ||--o{ COUPON_HISTORY : "by order_summary_id (no FK)"
     PAYMENT_SUMMARY ||--o{ ORDER_SUMMARY : "by order_summary_id (no FK)"
-    PAYMENT_SUMMARY ||--o{ MEMBER : "by member_id (no FK)"
     PAYMENT_SUMMARY ||--o{ COUPON : "by coupon_id (no FK)"
 
     MEMBER {
@@ -107,7 +106,6 @@ erDiagram
         BIGINT total_amount
         BIGINT discount_amount
         BIGINT charge_amount
-        BIGINT member_id
         BIGINT order_summary_id
         BIGINT coupon_id
         DATETIME created_at
@@ -127,7 +125,6 @@ erDiagram
     - order_summary 1:N order_item (논리 FK: order_item.order_summary_id, 현재 외래키 제약 없음)
     - order_summary → coupon_history (논리적 참조: coupon_history.order_summary_id, 현재 외래키 제약 없음)
     - product_summary 1:N order_item (논리 FK: order_item.product_summary_id, 현재 외래키 제약 없음)
-    - payment_summary N:1 member (member_id, FK 없음)
     - payment_summary N:1 order_summary (order_summary_id, FK 없음)
     - payment_summary N:1 coupon (coupon_id, FK 없음)
 
@@ -332,14 +329,12 @@ erDiagram
 | total_amount | BIGINT | NOT NULL |
 | discount_amount | BIGINT | NOT NULL |
 | charge_amount | BIGINT | NOT NULL |
-| member_id | BIGINT | NOT NULL |
 | order_summary_id | BIGINT | NOT NULL |
 | coupon_id | BIGINT | NULL |
 | created_at | DATETIME(6) | NOT NULL |
 | updated_at | DATETIME(6) | NOT NULL |
 
 - 인덱스
-  - idx_payment_summary_member_id(member_id)
   - idx_payment_summary_order_summary_id(order_summary_id)
   - idx_payment_summary_coupon_id(coupon_id)
 - 관계

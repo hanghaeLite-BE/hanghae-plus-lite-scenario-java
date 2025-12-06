@@ -27,7 +27,6 @@ class PlaceOrderFacade(
     private val eventPublisher: ApplicationEventPublisher,
 ) : PlaceOrderUseCase {
     /**
-     * TODO: 동시성 이슈 방지를 위해 분산락 적용 필요. 지금은 해당 이슈를 고려하지 않음.
      * 유저의 상품주문
      * - 유저정보 조회
      * - 주문상태 생성
@@ -44,9 +43,10 @@ class PlaceOrderFacade(
         requestPaymentSummary: PlaceOrderPaymentSummaryVO,
         orderAt: LocalDateTime,
     ): PlaceOrderResultVO {
+        // TODO: 동시성 이슈방지를 위해 회원정보 조회시 Lock을 사용 중. 분산락 적용 후 락을 제거할것
         val member =
             memberOutput
-                .findById(memberId)
+                .findByIdWithLock(memberId)
                 .orElseThrow {
                     ConflictResourceException(
                         message = "회원정보를 찾을 수 없습니다.",
@@ -71,7 +71,6 @@ class PlaceOrderFacade(
 
         val paymentSummary =
             generatePaymentUseCase.generatePaymentSummary(
-                member = member,
                 coupon = coupon,
                 orderSummary = orderSummary,
                 method = requestPaymentSummary.method,

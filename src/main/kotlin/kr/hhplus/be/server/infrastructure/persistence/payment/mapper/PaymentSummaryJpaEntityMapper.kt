@@ -12,22 +12,21 @@ object PaymentSummaryJpaEntityMapper {
             totalAmount = entity.totalAmount,
             discountAmount = entity.discountAmount,
             chargeAmount = entity.chargeAmount,
-            memberId = entity.memberId,
             orderSummaryId = entity.orderSummaryId,
             couponId = entity.couponId,
         )
 
     fun toEntity(domain: PaymentSummary): PaymentSummaryJpaEntity =
         PaymentSummaryJpaEntity(
-            method = kr.hhplus.be.server.infrastructure.persistence.payment.PaymentMethod.valueOf(domain.method.name),
+            method =
+                kr.hhplus.be.server.infrastructure.persistence.payment.PaymentMethod
+                    .valueOf(domain.method.name),
             totalAmount = domain.totalAmount,
             discountAmount = domain.discountAmount,
             chargeAmount = domain.chargeAmount,
-            memberId = domain.memberId,
             orderSummaryId = domain.orderSummaryId,
             couponId = domain.couponId,
         ).apply {
             id = domain.id
         }
 }
-

@@ -30,13 +30,14 @@ class MyCouponInteractorTest {
             val memberId = 1L
             val couponSummary =
                 StubFactory.couponSummary(id = 10L, name = "쿠폰", discountPercentage = 15L, validDays = 30)
-            val coupon = StubFactory.coupon(
-                id = 100L,
-                couponSummary = couponSummary,
-                memberId = memberId,
-                usingAt = null,
-                now = LocalDateTime.of(2025, 12, 1, 0, 0)
-            )
+            val coupon =
+                StubFactory.coupon(
+                    id = 100L,
+                    couponSummary = couponSummary,
+                    memberId = memberId,
+                    usingAt = null,
+                    now = LocalDateTime.of(2025, 12, 1, 0, 0),
+                )
             every { couponOutput.findAllByMemberId(memberId) } returns listOf(coupon)
 
             val result = interactor.getMyCoupons(memberId)
@@ -47,8 +48,8 @@ class MyCouponInteractorTest {
                     name = "쿠폰",
                     discountPercentage = 15L,
                     expiredAt = coupon.expiredAt,
-                    usingAt = null
-                )
+                    usingAt = null,
+                ),
             )
         }
 
@@ -74,15 +75,16 @@ class MyCouponInteractorTest {
             val couponSummaryId = 10L
             val couponSummary =
                 StubFactory.couponSummary(id = couponSummaryId, name = "쿠폰", discountPercentage = 20L, validDays = 10)
-            val coupon = StubFactory.coupon(
-                id = 100L,
-                couponSummary = couponSummary,
-                memberId = member.id!!,
-                usingAt = null,
-                now = LocalDateTime.of(2025, 12, 1, 0, 0)
-            )
+            val coupon =
+                StubFactory.coupon(
+                    id = 100L,
+                    couponSummary = couponSummary,
+                    memberId = member.id!!,
+                    usingAt = null,
+                    now = LocalDateTime.of(2025, 12, 1, 0, 0),
+                )
             val usedCoupon = coupon.copy(usingAt = LocalDateTime.of(2025, 9, 24, 12, 0))
-            every { couponOutput.findByIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.of(coupon)
+            every { couponOutput.findByCouponSummaryIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.of(coupon)
             every { couponOutput.save(any()) } returns usedCoupon
 
             // when
@@ -101,14 +103,15 @@ class MyCouponInteractorTest {
             val couponSummaryId = 10L
             val couponSummary =
                 StubFactory.couponSummary(id = couponSummaryId, name = "쿠폰", discountPercentage = 20L, validDays = 10)
-            val coupon = StubFactory.coupon(
-                id = 100L,
-                couponSummary = couponSummary,
-                memberId = member.id!!,
-                usingAt = LocalDateTime.of(2025, 9, 20, 12, 0),
-                now = LocalDateTime.of(2025, 12, 1, 0, 0)
-            )
-            every { couponOutput.findByIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.of(coupon)
+            val coupon =
+                StubFactory.coupon(
+                    id = 100L,
+                    couponSummary = couponSummary,
+                    memberId = member.id!!,
+                    usingAt = LocalDateTime.of(2025, 9, 20, 12, 0),
+                    now = LocalDateTime.of(2025, 12, 1, 0, 0),
+                )
+            every { couponOutput.findByCouponSummaryIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.of(coupon)
 
             // when & then
             assertThatThrownBy {
@@ -126,14 +129,16 @@ class MyCouponInteractorTest {
             val couponSummary =
                 StubFactory.couponSummary(id = couponSummaryId, name = "쿠폰", discountPercentage = 20L, validDays = 10)
             val expiredAt = LocalDateTime.of(2025, 9, 20, 0, 0)
-            val coupon = StubFactory.coupon(
-                id = 100L,
-                couponSummary = couponSummary,
-                memberId = member.id!!,
-                usingAt = null,
-                now = expiredAt.minusDays(10)
-            ).copy(expiredAt = expiredAt)
-            every { couponOutput.findByIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.of(coupon)
+            val coupon =
+                StubFactory
+                    .coupon(
+                        id = 100L,
+                        couponSummary = couponSummary,
+                        memberId = member.id!!,
+                        usingAt = null,
+                        now = expiredAt.minusDays(10),
+                    ).copy(expiredAt = expiredAt)
+            every { couponOutput.findByCouponSummaryIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.of(coupon)
 
             // when & then
             assertThatThrownBy {
@@ -148,7 +153,7 @@ class MyCouponInteractorTest {
             // given
             val member = StubFactory.member(id = 2L, email = "user2@test.com", pwd = "pwd")
             val couponSummaryId = 20L
-            every { couponOutput.findByIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.empty()
+            every { couponOutput.findByCouponSummaryIdAndMemberId(couponSummaryId, member.id!!) } returns Optional.empty()
 
             // when & then
             assertThatThrownBy {

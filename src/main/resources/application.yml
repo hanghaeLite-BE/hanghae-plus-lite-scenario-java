@@ -12,6 +12,8 @@ spring:
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
+      hibernate:
+        default_batch_fetch_size: 100
 
 kafka:
   group-id: "virtual-2-commerce-group"
@@ -22,3 +24,6 @@ app:
   idempotency:
     header: Idempotency-Key
     ttl: PT10M
+    paths:
+      - /api/v1/orders
+      - /api/v1/coupons/issuance

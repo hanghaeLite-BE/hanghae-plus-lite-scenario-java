@@ -22,11 +22,7 @@ import javax.sql.DataSource
 class DataSourceConfig {
     @Bean
     @ConfigurationProperties("spring.datasource.master")
-    fun masterDataSourceProperties() =
-        DataSourceProperties().apply {
-            println("Master URL: $url")
-            println("Master Username: $username")
-        }
+    fun masterDataSourceProperties() = DataSourceProperties()
 
     @Bean
     fun masterDataSource(
@@ -35,11 +31,7 @@ class DataSourceConfig {
 
     @Bean
     @ConfigurationProperties("spring.datasource.slave")
-    fun slaveDataSourceProperties() =
-        DataSourceProperties().apply {
-            println("Master URL: $url")
-            println("Master Username: $username")
-        }
+    fun slaveDataSourceProperties() = DataSourceProperties()
 
     @Bean
     @ConfigurationProperties("spring.datasource.slave.hikari")

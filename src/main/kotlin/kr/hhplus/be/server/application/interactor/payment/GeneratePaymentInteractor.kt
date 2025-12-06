@@ -3,7 +3,6 @@ package kr.hhplus.be.server.application.interactor.payment
 import kr.hhplus.be.server.application.port.out.PaymentOutput
 import kr.hhplus.be.server.application.usecase.payment.GeneratePaymentUseCase
 import kr.hhplus.be.server.domain.model.coupon.Coupon
-import kr.hhplus.be.server.domain.model.member.Member
 import kr.hhplus.be.server.domain.model.order.OrderSummary
 import kr.hhplus.be.server.domain.model.payment.PaymentSummary
 import org.springframework.stereotype.Service
@@ -19,7 +18,6 @@ class GeneratePaymentInteractor(
      */
     @Transactional
     override fun generatePaymentSummary(
-        member: Member,
         coupon: Coupon?,
         orderSummary: OrderSummary,
         method: String,
@@ -29,7 +27,6 @@ class GeneratePaymentInteractor(
                 method = method,
                 coupon = coupon,
                 orderSummary = orderSummary,
-                member = member,
             )
 
         return paymentOutput.save(paymentSummary)

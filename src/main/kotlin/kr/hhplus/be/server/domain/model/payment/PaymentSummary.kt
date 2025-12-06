@@ -10,7 +10,6 @@ data class PaymentSummary(
     val totalAmount: Long,
     val discountAmount: Long,
     val chargeAmount: Long,
-    val memberId: Long,
     val orderSummaryId: Long,
     val couponId: Long?,
 ) {
@@ -20,13 +19,12 @@ data class PaymentSummary(
          * - 결제수단 검증
          * - 주문 상품들의 총 금액 계산
          * - 쿠폰 적용 후 결제 금액 계산
-         * - 결제수단, 회원, 주문정보 포함한 결제정보를 생성
+         * - 결제수단, 주문정보 포함한 결제정보를 생성
          */
         fun createPaymentSummary(
             method: String,
             coupon: Coupon?,
             orderSummary: OrderSummary,
-            member: Member,
         ): PaymentSummary {
             val method = PaymentMethod.from(method) ?: throw IllegalArgumentException("지원하지않는 결제수단입니다.")
             val totalAmount = orderSummary.getTotalAmount()
@@ -37,7 +35,6 @@ data class PaymentSummary(
                 totalAmount = totalAmount,
                 discountAmount = discountAmount,
                 chargeAmount = totalAmount - discountAmount,
-                memberId = member.id!!,
                 orderSummaryId = orderSummary.id!!,
                 couponId = coupon?.id,
             )

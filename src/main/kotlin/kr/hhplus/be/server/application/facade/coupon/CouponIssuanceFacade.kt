@@ -9,6 +9,7 @@ import kr.hhplus.be.server.application.usecase.coupon.CouponIssuanceUseCase
 import kr.hhplus.be.server.domain.exception.NotFoundResourceException
 import kr.hhplus.be.server.domain.model.coupon.Coupon
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
@@ -31,6 +32,7 @@ class CouponIssuanceFacade(
      * - 생성된 쿠폰을 저장한다.
      * - 저장된 쿠폰을 반환한다.
      */
+    @Transactional
     override fun issue(
         memberId: Long,
         couponSummaryId: Long,
@@ -47,7 +49,7 @@ class CouponIssuanceFacade(
 
         val issuance =
             issuanceOutput
-                .findByCouponSummaryId(couponSummaryId)
+                .findByCouponSummaryIdWithLock(couponSummaryId)
                 .orElseThrow {
                     NotFoundResourceException(
                         message = "요청하신 쿠폰의 발급정보를 찾을수없습니다.",

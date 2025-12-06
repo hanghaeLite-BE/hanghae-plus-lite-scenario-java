@@ -1,6 +1,14 @@
 package kr.hhplus.be.server.infrastructure.persistence.order
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import kr.hhplus.be.server.infrastructure.persistence.config.CreatedAndUpdatedAtAuditEntity
 
 @Entity
@@ -8,7 +16,7 @@ import kr.hhplus.be.server.infrastructure.persistence.config.CreatedAndUpdatedAt
 class OrderSummaryJpaEntity(
     @Column(nullable = false)
     val memberId: Long,
-    @OneToMany(mappedBy = "orderSummaryId", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "orderSummaryId", cascade = [CascadeType.ALL])
     val orderItems: MutableList<OrderItemJpaEntity>,
 ) : CreatedAndUpdatedAtAuditEntity() {
     @Id

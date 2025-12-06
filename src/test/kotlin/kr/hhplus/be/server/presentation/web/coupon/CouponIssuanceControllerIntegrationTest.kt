@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.presentation.web.coupon
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -35,6 +36,9 @@ class CouponIssuanceControllerIntegrationTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     private val fixedNow = LocalDateTime.of(2025, 9, 24, 0, 0, 0)
 
     @BeforeEach
@@ -62,10 +66,48 @@ class CouponIssuanceControllerIntegrationTest {
                     MockMvcRequestBuilders
                         .post("/api/v1/coupons/issuance")
                         .header("X-Member-Id", memberId)
+                        .header("Idempotency-Key", "issue-success")
                         .content("{\"couponSummaryId\": $couponSummaryId}")
                         .contentType("application/json"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.jsonPath("$.couponId").exists())
+        }
+
+        @Transactional
+        @Test
+        @DisplayName("같은 Idempotency-Key로 중복 요청하면 캐시된 응답을 반환한다")
+        fun issueCoupon_idempotent() {
+            val memberId = 1L
+            val couponSummaryId = 1L
+            val idempotencyKey = "issue-idempotent"
+
+            val firstResponse =
+                mockMvc
+                    .perform(
+                        MockMvcRequestBuilders
+                            .post("/api/v1/coupons/issuance")
+                            .header("X-Member-Id", memberId)
+                            .header("Idempotency-Key", idempotencyKey)
+                            .content("{\"couponSummaryId\": $couponSummaryId}")
+                            .contentType("application/json"),
+                    ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andReturn()
+
+            val cachedCouponId =
+                objectMapper
+                    .readTree(firstResponse.response.contentAsString)["couponId"]
+                    .asLong()
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/v1/coupons/issuance")
+                        .header("X-Member-Id", memberId)
+                        .header("Idempotency-Key", idempotencyKey)
+                        .content("{\"couponSummaryId\": $couponSummaryId}")
+                        .contentType("application/json"),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.jsonPath("$.couponId").value(cachedCouponId))
         }
 
         @Test
@@ -78,6 +120,7 @@ class CouponIssuanceControllerIntegrationTest {
                     MockMvcRequestBuilders
                         .post("/api/v1/coupons/issuance")
                         .header("X-Member-Id", memberId)
+                        .header("Idempotency-Key", "issue-fail-period")
                         .content("{\"couponSummaryId\": $couponSummaryId}")
                         .contentType("application/json"),
                 ).andExpect(MockMvcResultMatchers.status().isConflict)
@@ -94,6 +137,7 @@ class CouponIssuanceControllerIntegrationTest {
                     MockMvcRequestBuilders
                         .post("/api/v1/coupons/issuance")
                         .header("X-Member-Id", memberId)
+                        .header("Idempotency-Key", "issue-fail-max")
                         .content("{\"couponSummaryId\": $couponSummaryId}")
                         .contentType("application/json"),
                 ).andExpect(MockMvcResultMatchers.status().isConflict)
@@ -110,6 +154,7 @@ class CouponIssuanceControllerIntegrationTest {
                     MockMvcRequestBuilders
                         .post("/api/v1/coupons/issuance")
                         .header("X-Member-Id", memberId)
+                        .header("Idempotency-Key", "issue-fail-policy")
                         .content("{\"couponSummaryId\": $couponSummaryId}")
                         .contentType("application/json"),
                 ).andExpect(MockMvcResultMatchers.status().isConflict)

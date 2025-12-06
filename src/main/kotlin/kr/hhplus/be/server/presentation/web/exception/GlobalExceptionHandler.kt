@@ -17,7 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
     basePackages = ["kr.hhplus.be.server.presentation.web"],
 )
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
-    private val logger = KotlinLogging.logger { }
+    private val logger = KotlinLogging.logger {}
 
     @ExceptionHandler(value = [IllegalArgumentException::class])
     fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> =
@@ -54,13 +54,11 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler(ForbiddenException::class)
-    fun handleForbiddenException(e: ForbiddenException): ResponseEntity<ErrorResponse> {
-
-        return ResponseEntity(
+    fun handleForbiddenException(e: ForbiddenException): ResponseEntity<ErrorResponse> =
+        ResponseEntity(
             ErrorResponse(e.message),
             HttpStatus.FORBIDDEN,
         )
-    }
 }
 
 data class ErrorResponse(

@@ -34,7 +34,7 @@ class MyCouponInteractor(
     ): Coupon {
         val usedCoupon =
             couponOutput
-                .findByIdAndMemberId(
+                .findByCouponSummaryIdAndMemberId(
                     couponSummaryId = couponSummaryId,
                     memberId = member.id!!,
                 ).orElseThrow {

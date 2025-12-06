@@ -119,13 +119,11 @@ CREATE TABLE IF NOT EXISTS payment_summary (
     total_amount BIGINT NOT NULL,
     discount_amount BIGINT NOT NULL,
     charge_amount BIGINT NOT NULL,
-    member_id BIGINT NOT NULL,
     order_summary_id BIGINT NOT NULL,
     coupon_id BIGINT NULL,
     created_at DATETIME(6) NOT NULL,
     updated_at DATETIME(6) NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-CREATE INDEX idx_payment_summary_member_id ON payment_summary(member_id);
 CREATE INDEX idx_payment_summary_order_summary_id ON payment_summary(order_summary_id);
 CREATE INDEX idx_payment_summary_coupon_id ON payment_summary(coupon_id);

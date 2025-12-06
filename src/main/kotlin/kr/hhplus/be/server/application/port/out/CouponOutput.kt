@@ -1,10 +1,10 @@
 package kr.hhplus.be.server.application.port.out
 
 import kr.hhplus.be.server.domain.model.coupon.Coupon
-import java.util.*
+import java.util.Optional
 
 interface CouponOutput {
-    fun findByIdAndMemberId(
+    fun findByCouponSummaryIdAndMemberId(
         couponSummaryId: Long,
         memberId: Long,
     ): Optional<Coupon>

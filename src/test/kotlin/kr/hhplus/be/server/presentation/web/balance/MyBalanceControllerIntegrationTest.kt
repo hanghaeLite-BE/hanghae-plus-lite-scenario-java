@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional
 @IntegrationTest
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Transactional
 class MyBalanceControllerIntegrationTest {
     @LocalServerPort
     private var port: Int = 0
@@ -93,6 +92,7 @@ class MyBalanceControllerIntegrationTest {
     @Nested
     @DisplayName("내 잔고 충전(PUT /api/v1/balances/me/{memberBalanceId}/recharge)")
     inner class RechargeMyBalance {
+        @Transactional
         @ParameterizedTest
         @CsvSource(
             value = [

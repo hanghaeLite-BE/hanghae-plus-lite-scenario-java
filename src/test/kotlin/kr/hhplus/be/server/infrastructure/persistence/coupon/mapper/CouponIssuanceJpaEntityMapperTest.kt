@@ -51,4 +51,3 @@ class CouponIssuanceJpaEntityMapperTest {
         assertEquals(domain.endAt, entity.endAt)
     }
 }
-

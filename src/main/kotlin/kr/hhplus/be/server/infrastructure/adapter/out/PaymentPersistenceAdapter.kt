@@ -5,15 +5,23 @@ import kr.hhplus.be.server.domain.model.payment.PaymentSummary
 import kr.hhplus.be.server.infrastructure.persistence.payment.PaymentSummaryJpaRepository
 import kr.hhplus.be.server.infrastructure.persistence.payment.mapper.PaymentSummaryJpaEntityMapper
 import org.springframework.stereotype.Component
+import java.util.Optional
 
 @Component
 class PaymentPersistenceAdapter(
     private val paymentSummaryJpaRepository: PaymentSummaryJpaRepository,
 ) : PaymentOutput {
     override fun save(paymentSummary: PaymentSummary): PaymentSummary {
-        val entity = PaymentSummaryJpaEntityMapper.toEntity(paymentSummary)
-            .let(paymentSummaryJpaRepository::save)
+        val entity =
+            PaymentSummaryJpaEntityMapper
+                .toEntity(paymentSummary)
+                .let(paymentSummaryJpaRepository::save)
 
         return PaymentSummaryJpaEntityMapper.toDomain(entity)
     }
+
+    override fun findByOrderSummaryId(orderId: Long): Optional<PaymentSummary> =
+        paymentSummaryJpaRepository.findByOrderSummaryId(orderId).map {
+            PaymentSummaryJpaEntityMapper.toDomain(it)
+        }
 }
