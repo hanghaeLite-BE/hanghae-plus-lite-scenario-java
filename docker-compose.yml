@@ -1,0 +1,68 @@
+version: '3'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - appnet
+
+  mysql-master:
+    image: mysql:8.0
+    container_name: mysql-master
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=application
+      - MYSQL_PASSWORD=application
+      - MYSQL_DATABASE=grindelwald
+      - MYSQL_REPLICATION_USER=repl
+      - MYSQL_REPLICATION_PASSWORD=replpass
+    command:
+      --server-id=1
+      --log-bin=mysql-bin
+      --binlog-do-db=grindelwald
+      --gtid-mode=ON
+      --enforce-gtid-consistency=ON
+      --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./data/mysql-master/:/var/lib/mysql
+      - ./init/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql
+      - ./init/default-member.sql:/docker-entrypoint-initdb.d/01-default-member.sql
+    networks:
+      - appnet
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: mysql-slave
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=application
+      - MYSQL_PASSWORD=application
+      - MYSQL_DATABASE=grindelwald
+      - MYSQL_REPLICATION_USER=repl
+      - MYSQL_REPLICATION_PASSWORD=replpass
+    command:
+      --server-id=2
+      --relay-log=relay-log
+      --log-bin=mysql-bin
+      --read-only=ON
+      --gtid-mode=ON
+      --enforce-gtid-consistency=ON
+      --default-authentication-plugin=mysql_native_password
+    depends_on:
+      - mysql-master
+    volumes:
+      - ./data/mysql-slave/:/var/lib/mysql
+      - ./init/local/init-slave.sh:/docker-entrypoint-initdb.d/00-init-slave.sh
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge

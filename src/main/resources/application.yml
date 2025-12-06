@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: virtual-e-commerce
+  profiles:
+    active: local
+  jpa:
+    open-in-view: false
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate.timezone.default_storage: NORMALIZE_UTC
+      hibernate.jdbc.time_zone: UTC
+
+kafka:
+  group-id: "virtual-2-commerce-group"
+  place-order-complete:
+    topic: "place-order-complete"
+
+app:
+  idempotency:
+    header: Idempotency-Key
+    ttl: PT10M
