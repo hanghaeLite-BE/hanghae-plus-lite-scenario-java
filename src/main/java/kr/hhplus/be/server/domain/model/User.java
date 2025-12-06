@@ -27,13 +27,20 @@ public class User {
         return new User(this.userId, this.balance - amount, this.id);
     }
 
+    public User chargeBalance(Long amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
+        }
+        return new User(this.userId, this.balance + amount, this.id);
+    }
+
     private User(String userId, Long balance, Long id) {
         this.userId = userId;
         this.balance = balance;
         this.id = id;
     }
 
-    void assignId(Long id) {
+    public void assignId(Long id) {
         this.id = id;
     }
 

@@ -1,14 +1,13 @@
 package kr.hhplus.be.server.application.service;
 
-import kr.hhplus.be.server.domain.entity.Concert;
-import kr.hhplus.be.server.domain.entity.ConcertStatus;
+import kr.hhplus.be.server.domain.model.Concert;
+import kr.hhplus.be.server.domain.model.ConcertStatus;
 import kr.hhplus.be.server.domain.repository.ConcertRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)

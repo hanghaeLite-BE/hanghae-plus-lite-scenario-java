@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.interfaces.dto;
 
-import kr.hhplus.be.server.domain.entity.Concert;
-import kr.hhplus.be.server.domain.entity.ConcertStatus;
+import kr.hhplus.be.server.domain.model.Concert;
+import kr.hhplus.be.server.domain.model.ConcertStatus;
 
 import java.time.LocalDateTime;
 

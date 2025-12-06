@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.interfaces.api;
 
 import kr.hhplus.be.server.application.service.ConcertService;
-import kr.hhplus.be.server.domain.entity.Concert;
+import kr.hhplus.be.server.domain.model.Concert;
 import kr.hhplus.be.server.interfaces.dto.ConcertResponse;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

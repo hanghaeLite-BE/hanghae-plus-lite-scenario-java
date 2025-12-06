@@ -59,7 +59,7 @@ public class Reservation {
     }
 
     // ID 할당 (Infrastructure에서만 호출)
-    void assignId(Long id) {
+    public void assignId(Long id) {
         this.id = id;
     }
 

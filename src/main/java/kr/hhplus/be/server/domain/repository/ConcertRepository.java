@@ -1,26 +1,16 @@
 package kr.hhplus.be.server.domain.repository;
 
-import kr.hhplus.be.server.domain.entity.Concert;
-import kr.hhplus.be.server.domain.entity.ConcertStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
+import kr.hhplus.be.server.domain.model.Concert;
+import kr.hhplus.be.server.domain.model.ConcertStatus;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-public interface ConcertRepository extends JpaRepository<Concert, Long> {
-
-    @Query("SELECT c FROM Concert c WHERE c.status = :status AND c.concertDate > :currentDate ORDER BY c.concertDate ASC")
-    List<Concert> findAvailableConcerts(@Param("status") ConcertStatus status,
-                                        @Param("currentDate") LocalDateTime currentDate);
-
-    @Query("SELECT c FROM Concert c WHERE c.concertDate BETWEEN :startDate AND :endDate ORDER BY c.concertDate ASC")
-    List<Concert> findConcertsByDateRange(@Param("startDate") LocalDateTime startDate,
-                                          @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT c FROM Concert c WHERE c.artist = :artist AND c.concertDate > :currentDate ORDER BY c.concertDate ASC")
-    List<Concert> findByArtistAndFutureDates(@Param("artist") String artist,
-                                             @Param("currentDate") LocalDateTime currentDate);
+public interface ConcertRepository {
+    Concert save(Concert concert);
+    Optional<Concert> findById(Long id);
+    List<Concert> findAvailableConcerts(ConcertStatus status, LocalDateTime currentDate);
+    List<Concert> findConcertsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    List<Concert> findByArtistAndFutureDates(String artist, LocalDateTime currentDate);
 }
 
