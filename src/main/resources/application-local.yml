@@ -1,0 +1,25 @@
+spring:
+  activate:
+    on-profile: local
+  datasource:
+    master:
+      url: jdbc:mysql://localhost:3306/grindelwald?characterEncoding=UTF-8&serverTimezone=UTC
+      username: application
+      password: application
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        pool-name: HangHaePlusHikariCP-master
+        maximum-pool-size: 3
+    slave:
+      url: jdbc:mysql://localhost:3307/grindelwald?characterEncoding=UTF-8&serverTimezone=UTC
+      username: application
+      password: application
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        pool-name: HangHaePlusHikariCP-slave
+        maximum-pool-size: 3
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 1s
