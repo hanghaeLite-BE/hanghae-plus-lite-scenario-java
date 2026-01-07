@@ -35,6 +35,7 @@ spring_boot_dependencies = { module = "org.springframework.boot:spring-boot-depe
 spring_boot_starter_web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring_boot_starter_data_jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring_boot_starter_actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring_boot_starter_validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring_boot_configuration_processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 spring_boot_starter_test = { module = "org.springframework.boot:spring-boot-starter-test" }
 
