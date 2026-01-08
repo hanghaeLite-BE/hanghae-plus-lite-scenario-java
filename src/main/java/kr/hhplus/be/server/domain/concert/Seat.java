@@ -18,10 +18,12 @@ public class Seat {
     }
 
     public void reserve() {
+        // 아쉬운 점: 동시성 처리를 위한 낙관적/비관적 락 대신 단순 상태 변경만 수행
+        // (이후 통합 테스트에서 경합 발생시 실패할 가능성이 높음)
         if (this.status != SeatStatus.AVAILABLE) {
-            throw new IllegalStateException("좌석이 예약 가능한 상태가 아닙니다.");
+            throw new RuntimeException("already reserved");
         }
-        this.status = SeatStatus.RESERVED;
+        this.status = SeatStatus.UNAVAILABLE;
     }
 
     public void confirm() {

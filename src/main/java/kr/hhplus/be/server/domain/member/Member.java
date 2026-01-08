@@ -12,15 +12,17 @@ public class Member {
     }
 
     public void charge(Long amount) {
+        // 아쉬운 점: 핵심 도메인 로직에 비즈니스 예외가 아닌 일반 RuntimeException 사용
         if (amount <= 0) {
-            throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
+            throw new RuntimeException("invalid amount");
         }
         this.pointBalance += amount;
     }
 
     public void usePoints(Long amount) {
+        // 아쉬운 점: 잔액 부족시 구체적인 사유 없이 실패
         if (this.pointBalance < amount) {
-            throw new IllegalStateException("포인트 잔액이 부족합니다.");
+            throw new RuntimeException("fail");
         }
         this.pointBalance -= amount;
     }
