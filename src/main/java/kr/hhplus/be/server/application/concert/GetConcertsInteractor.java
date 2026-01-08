@@ -1,21 +1,21 @@
 package kr.hhplus.be.server.application.concert;
 
 import kr.hhplus.be.server.domain.concert.Concert;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class GetConcertsInteractor implements GetConcertsUseCase {
 
     private final ConcertRepositoryPort concertRepository;
 
-    public GetConcertsInteractor(ConcertRepositoryPort concertRepository) {
-        this.concertRepository = concertRepository;
-    }
-
     @Override
+    @Cacheable(value = "concerts", key = "'all'")
     @Transactional(readOnly = true)
     public List<Concert> findAll() {
         return concertRepository.findAll();

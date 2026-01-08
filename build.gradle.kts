@@ -34,6 +34,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // DB
 	runtimeOnly("com.mysql:mysql-connector-j")
@@ -43,6 +44,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
+	// Redis 통합 테스트를 위한 라이브러리 (RedisStack 또는 GenericContainer 활용 가능)
+	testImplementation("com.redis:testcontainers-redis:2.2.2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
