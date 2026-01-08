@@ -24,3 +24,21 @@
 > STEP 03 - STEP 06까지는 리뷰 세션에서 리뷰한 코드는 아닙니다. 리뷰 세션에서 보인 각 스탭별 과제물의 특징을 잘 반영하면서 일관성을 유지히여 자습하는데 더 도움이 되도록 개정하였습니다.
 - 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/9
 - 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/10
+
+## STEP 04: DB 정합
+- 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/11
+- 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/12
+
+## STEP 05: 동시성 제어
+- 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/13
+- 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/14
+
+## STEP 06: 분산락과 캐싱
+- 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/15
+- 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/16
+
+## STEP 07: Redis 활용
+> STEP 07부터는 일반 사례와 모범 사례를 처음부터 나누는 것이 아닌, 먼저 일반 사례를 작성하고 이를 개선하여 모범 사례로 만드는 방식으로 진행합니다.
+- 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/17
+- 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/18
+- 코드 정리(리뷰 세션 내용과는 무관하나, 참고 자료로 첨부): https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/19
