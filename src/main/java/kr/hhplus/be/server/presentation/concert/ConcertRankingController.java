@@ -17,7 +17,7 @@ public class ConcertRankingController {
     private final ConcertRankingService concertRankingService;
 
     @GetMapping("/concerts")
-    public List<ConcertRankingService.RankingResponse> getTopRankings(
+    public List<ConcertRankingPort.RankingResponse> getTopRankings(
             @RequestParam(defaultValue = "10") int limit
     ) {
         return concertRankingService.getTopRankings(limit);

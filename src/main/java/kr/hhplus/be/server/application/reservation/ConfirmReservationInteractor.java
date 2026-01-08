@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.reservation;
 
 import kr.hhplus.be.server.application.concert.SeatRepositoryPort;
+import kr.hhplus.be.server.application.concert.ConcertRankingService;
 import kr.hhplus.be.server.application.member.MemberRepositoryPort;
 import kr.hhplus.be.server.domain.concert.Seat;
 import kr.hhplus.be.server.domain.member.Member;
@@ -18,15 +19,18 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
     private final MemberRepositoryPort memberRepository;
     private final SeatRepositoryPort seatRepository;
     private final PaymentRepositoryPort paymentRepository;
+    private final ConcertRankingService concertRankingService;
 
     public ConfirmReservationInteractor(ReservationRepositoryPort reservationRepository,
                                         MemberRepositoryPort memberRepository,
                                         SeatRepositoryPort seatRepository,
-                                        PaymentRepositoryPort paymentRepository) {
+                                        PaymentRepositoryPort paymentRepository,
+                                        ConcertRankingService concertRankingService) {
         this.reservationRepository = reservationRepository;
         this.memberRepository = memberRepository;
         this.seatRepository = seatRepository;
         this.paymentRepository = paymentRepository;
+        this.concertRankingService = concertRankingService;
     }
 
     @Override
@@ -65,5 +69,11 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
                 .paidAt(LocalDateTime.now())
                 .build();
         paymentRepository.save(payment);
+
+        // 4. 랭킹 정보 업데이트 트리거
+        // DB 정합성 기준 (Source of Truth): 현재까지 확정 판매된 좌석 수를 조회하여 Redis 갱신
+        long confirmedCount = seatRepository.countConfirmedSeatsByConcertId(seat.getConcertId());
+        long totalSeats = seatRepository.countTotalSeatsByConcertId(seat.getConcertId());
+        concertRankingService.updateSalesInfo(seat.getConcertId(), confirmedCount, totalSeats);
     }
 }
