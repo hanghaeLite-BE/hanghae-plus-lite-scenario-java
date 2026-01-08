@@ -5,5 +5,6 @@ import java.util.Optional;
 
 public interface MemberRepositoryPort {
     Optional<Member> findById(Long id);
+    Optional<Member> findByIdWithLock(Long id);
     void save(Member member);
 }

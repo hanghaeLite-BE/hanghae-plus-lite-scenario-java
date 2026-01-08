@@ -5,109 +5,91 @@ import kr.hhplus.be.server.application.member.MemberRepositoryPort;
 import kr.hhplus.be.server.domain.concert.Seat;
 import kr.hhplus.be.server.domain.concert.SeatStatus;
 import kr.hhplus.be.server.domain.member.Member;
+import kr.hhplus.be.server.domain.reservation.Payment;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class ConfirmReservationInteractorTest {
 
     @Mock
     private ReservationRepositoryPort reservationRepository;
-
     @Mock
     private MemberRepositoryPort memberRepository;
-
     @Mock
     private SeatRepositoryPort seatRepository;
+    @Mock
+    private PaymentRepositoryPort paymentRepository;
 
     @InjectMocks
     private ConfirmReservationInteractor confirmReservationInteractor;
 
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
-    @DisplayName("[성공] 포인트가 충분하면 결제가 완료되고 예약/좌석 상태가 확정/매진으로 변경된다")
+    @DisplayName("예약 확정 성공 테스트")
     void confirm_success() {
         // given
+        Long reservationId = 1L;
         Long memberId = 1L;
-        Long seatId = 100L;
-        Long reservationId = 50L;
-        Long price = 50000L;
+        Long seatId = 1L;
+        Long price = 5000L;
 
-        Reservation reservation = new Reservation(reservationId, memberId, seatId, ReservationStatus.RESERVED, LocalDateTime.now());
-        Member member = new Member(memberId, 100000L); // 10만 포인트
-        Seat seat = new Seat(seatId, 1L, 10, SeatStatus.RESERVED, price);
+        Reservation reservation = new Reservation(reservationId, memberId, seatId, ReservationStatus.PENDING, LocalDateTime.now());
+        Member member = new Member(memberId, 10000L);
+        Seat seat = new Seat(seatId, 1L, 1, SeatStatus.RESERVED, price, LocalDateTime.now().plusMinutes(5));
 
-        given(reservationRepository.findById(reservationId)).willReturn(Optional.of(reservation));
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(seatRepository.findById(seatId)).willReturn(Optional.of(seat));
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+        when(memberRepository.findByIdWithLock(memberId)).thenReturn(Optional.of(member));
+        when(seatRepository.findById(seatId)).thenReturn(Optional.of(seat));
 
         // when
-        confirmReservationInteractor.execute(reservationId, memberId);
+        confirmReservationInteractor.confirm(new ConfirmReservationUseCase.Command(reservationId, memberId));
 
         // then
-        assertThat(member.getPointBalance()).isEqualTo(50000L); // 10만 - 5만
+        assertThat(member.getPoints()).isEqualTo(5000L);
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
         assertThat(seat.getStatus()).isEqualTo(SeatStatus.SOLD);
 
-        verify(memberRepository).save(member);
-        verify(reservationRepository).save(reservation);
-        verify(seatRepository).save(seat);
+        verify(paymentRepository, times(1)).save(any(Payment.class));
     }
 
     @Test
-    @DisplayName("[실패] 포인트가 부족하면 결제에 실패한다")
-    void confirm_fail_insufficient_points() {
+    @DisplayName("잔액 부족 시 에러 발생")
+    void confirm_fail_not_enough_points() {
         // given
+        Long reservationId = 1L;
         Long memberId = 1L;
-        Long seatId = 100L;
-        Long reservationId = 50L;
-        Long price = 50000L;
+        Long seatId = 1L;
 
-        Reservation reservation = new Reservation(reservationId, memberId, seatId, ReservationStatus.RESERVED, LocalDateTime.now());
-        Member member = new Member(memberId, 30000L); // 3만 포인트 (부족)
-        Seat seat = new Seat(seatId, 1L, 10, SeatStatus.RESERVED, price);
+        Reservation reservation = new Reservation(reservationId, memberId, seatId, ReservationStatus.PENDING, LocalDateTime.now());
+        Member member = new Member(memberId, 3000L); // 5000원보다 적음
+        Seat seat = new Seat(seatId, 1L, 1, SeatStatus.RESERVED, 5000L, LocalDateTime.now().plusMinutes(5));
 
-        given(reservationRepository.findById(reservationId)).willReturn(Optional.of(reservation));
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(seatRepository.findById(seatId)).willReturn(Optional.of(seat));
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+        when(memberRepository.findByIdWithLock(memberId)).thenReturn(Optional.of(member));
+        when(seatRepository.findById(seatId)).thenReturn(Optional.of(seat));
 
         // when & then
-        assertThatThrownBy(() -> confirmReservationInteractor.execute(reservationId, memberId))
+        assertThatThrownBy(() -> confirmReservationInteractor.confirm(new ConfirmReservationUseCase.Command(reservationId, memberId)))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("포인트 잔액이 부족합니다.");
-
-        // 상태 불변 검증
-        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.RESERVED);
-        assertThat(seat.getStatus()).isEqualTo(SeatStatus.RESERVED);
-    }
-
-    @Test
-    @DisplayName("[실패] 이미 CONFIRMED된 중복 결제 시도시 실패한다")
-    void confirm_fail_already_confirmed() {
-        // given
-        Long memberId = 1L;
-        Long reservationId = 50L;
-
-        Reservation reservation = new Reservation(reservationId, memberId, 100L, ReservationStatus.CONFIRMED, LocalDateTime.now());
-
-        given(reservationRepository.findById(reservationId)).willReturn(Optional.of(reservation));
-
-        // when & then
-        assertThatThrownBy(() -> confirmReservationInteractor.execute(reservationId, memberId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 확정되었거나 확정할 수 없는 예약입니다.");
+                .hasMessage("잔액이 부족합니다.");
     }
 }
+

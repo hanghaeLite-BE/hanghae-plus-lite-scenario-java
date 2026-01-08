@@ -17,4 +17,9 @@ public interface SeatJpaRepository extends JpaRepository<SeatEntity, Long> {
                               @Param("newStatus") SeatStatus newStatus, 
                               @Param("reservedUntil") LocalDateTime reservedUntil, 
                               @Param("now") LocalDateTime now);
+
+    @Modifying
+    @Query("UPDATE SeatEntity s SET s.status = 'AVAILABLE', s.reservedUntil = null " +
+           "WHERE s.status = 'RESERVED' AND s.reservedUntil < :now")
+    int releaseExpiredSeats(@Param("now") LocalDateTime now);
 }
