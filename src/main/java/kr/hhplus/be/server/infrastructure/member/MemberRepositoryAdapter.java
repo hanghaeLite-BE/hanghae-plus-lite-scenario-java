@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Repository
 public class MemberRepositoryAdapter implements MemberRepositoryPort {
+
     private final MemberJpaRepository memberJpaRepository;
 
     public MemberRepositoryAdapter(MemberJpaRepository memberJpaRepository) {
@@ -17,6 +18,11 @@ public class MemberRepositoryAdapter implements MemberRepositoryPort {
     @Override
     public Optional<Member> findById(Long id) {
         return memberJpaRepository.findById(id).map(MemberMapper::toDomain);
+    }
+
+    @Override
+    public Optional<Member> findByIdWithLock(Long id) {
+        return memberJpaRepository.findByIdWithLock(id).map(MemberMapper::toDomain);
     }
 
     @Override

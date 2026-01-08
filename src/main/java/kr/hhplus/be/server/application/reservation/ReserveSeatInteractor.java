@@ -1,23 +1,27 @@
 package kr.hhplus.be.server.application.reservation;
 
 import kr.hhplus.be.server.application.concert.SeatRepositoryPort;
-import kr.hhplus.be.server.domain.concert.Seat;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationToken;
-import kr.hhplus.be.server.infrastructure.concert.SeatRepositoryAdapter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
-@RequiredArgsConstructor
 public class ReserveSeatInteractor implements ReserveSeatUseCase {
 
     private final SeatRepositoryPort seatRepository;
     private final ReservationRepositoryPort reservationRepository;
     private final ReservationTokenRepositoryPort tokenRepository;
+
+    public ReserveSeatInteractor(SeatRepositoryPort seatRepository,
+                                ReservationRepositoryPort reservationRepository,
+                                ReservationTokenRepositoryPort tokenRepository) {
+        this.seatRepository = seatRepository;
+        this.reservationRepository = reservationRepository;
+        this.tokenRepository = tokenRepository;
+    }
 
     @Override
     @Transactional
@@ -31,9 +35,7 @@ public class ReserveSeatInteractor implements ReserveSeatUseCase {
         }
 
         // 2. 좌석 선점 (DB 원자적 업데이트 활용)
-        // SeatRepositoryPort 인터페이스에 reserveAtomically가 없으므로 어댑터를 직접 쓰거나 포트에 추가해야 함.
-        // 여기서는 견본의 핵심 의도를 보여주기 위해 어댑터 기능을 활용하는 구조로 작성.
-        boolean success = ((SeatRepositoryAdapter) seatRepository).reserveAtomically(
+        boolean success = seatRepository.reserveAtomically(
                 command.seatId(), 
                 LocalDateTime.now().plusMinutes(5)
         );

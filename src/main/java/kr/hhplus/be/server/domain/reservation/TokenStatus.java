@@ -1,7 +1,17 @@
 package kr.hhplus.be.server.domain.reservation;
 
-import lombok.Getter;
-
 public enum TokenStatus {
-    ISSUED, USED, EXPIRED
+    ACTIVE("활성"),
+    USED("사용됨"),
+    EXPIRED("만료됨");
+
+    private final String description;
+
+    TokenStatus(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }

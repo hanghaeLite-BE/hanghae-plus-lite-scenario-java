@@ -4,7 +4,13 @@ import kr.hhplus.be.server.domain.reservation.Reservation;
 
 public class ReservationMapper {
     public static Reservation toDomain(ReservationEntity entity) {
-        return new Reservation(entity.getId(), entity.getMemberId(), entity.getSeatId(), entity.getStatus(), entity.getCreatedAt());
+        return new Reservation(
+                entity.getId(),
+                entity.getMemberId(),
+                entity.getSeatId(),
+                entity.getStatus(),
+                entity.getCreatedAt()
+        );
     }
 
     public static ReservationEntity toEntity(Reservation domain) {

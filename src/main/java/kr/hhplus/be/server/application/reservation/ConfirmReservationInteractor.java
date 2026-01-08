@@ -6,14 +6,12 @@ import kr.hhplus.be.server.domain.concert.Seat;
 import kr.hhplus.be.server.domain.member.Member;
 import kr.hhplus.be.server.domain.reservation.Payment;
 import kr.hhplus.be.server.domain.reservation.Reservation;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
-@RequiredArgsConstructor
 public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
 
     private final ReservationRepositoryPort reservationRepository;
@@ -21,17 +19,28 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
     private final SeatRepositoryPort seatRepository;
     private final PaymentRepositoryPort paymentRepository;
 
+    public ConfirmReservationInteractor(ReservationRepositoryPort reservationRepository,
+                                        MemberRepositoryPort memberRepository,
+                                        SeatRepositoryPort seatRepository,
+                                        PaymentRepositoryPort paymentRepository) {
+        this.reservationRepository = reservationRepository;
+        this.memberRepository = memberRepository;
+        this.seatRepository = seatRepository;
+        this.paymentRepository = paymentRepository;
+    }
+
     @Override
     @Transactional
     public void confirm(Command command) {
         Reservation reservation = reservationRepository.findById(command.reservationId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다."));
 
-        if (!reservation.getUserId().equals(command.userId())) {
+        if (!reservation.getMemberId().equals(command.userId())) {
             throw new IllegalArgumentException("본인의 예약만 확정할 수 있습니다.");
         }
 
-        Member member = memberRepository.findById(command.userId())
+        // 비관적 락 사용
+        Member member = memberRepository.findByIdWithLock(command.userId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
         Seat seat = seatRepository.findById(reservation.getSeatId())
