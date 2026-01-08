@@ -30,7 +30,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("동일 금액 반복 충전 시")
+  @DisplayName("동일 금액 반복 충전 시 잔액이 누적된다")
   void charge_repeatedSameAmount_accumulatesCorrectly() {
     long userId = 1L;
     long[] balance = { 0L }; // <-- Mock 내부 상태
@@ -62,7 +62,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("음수 금액 사용 시")
+  @DisplayName("음수 금액 사용 시 400(IllegalArgumentException) 발생")
   void use_negativeAmount_throwsException() {
     assertThatThrownBy(() -> pointService.use(1L, -100L))
         .isInstanceOf(IllegalArgumentException.class)
@@ -71,7 +71,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("잔액 최대치 근처에서 사용 시")
+  @DisplayName("잔액 최대치 근처에서 사용 시 정상 차감된다")
   void use_nearMaxValue_succeeds() {
     long userId = 1L;
     long nearMax = Long.MAX_VALUE - 10;
@@ -87,7 +87,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("오버플로우가 발생")
+  @DisplayName("충전 시 오버플로우가 발생하면 예외를 던진다")
   void charge_overflow_throws() {
     long userId = 1L;
     long almostMax = Long.MAX_VALUE - 5;
@@ -103,7 +103,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("잔액 부족")
+  @DisplayName("잔액 부족 시 사용 실패")
   void use_insufficientBalance_throws() {
     long userId = 1L;
     when(userPointTable.selectById(userId))
@@ -118,7 +118,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("히스토리 빈 리스트 반환")
+  @DisplayName("히스토리 조회: 빈 리스트면 그대로 빈 리스트 반환")
   void histories_emptyList_returnsEmpty() {
     when(pointHistoryTable.selectAllByUserId(99L)).thenReturn(List.of());
 
@@ -129,7 +129,7 @@ class PointServiceUnitTest {
   }
 
   @Test
-  @DisplayName("없는 사용자 포인트 조회")
+  @DisplayName("없는 사용자 포인트 조회 시 null 그대로 전달")
   void get_nonExistingUser_returnsNull() {
     when(userPointTable.selectById(123L)).thenReturn(null);
 
