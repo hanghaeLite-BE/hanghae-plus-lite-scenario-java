@@ -15,7 +15,7 @@ public class ReserveSeatDistributedLockFacade {
     private final RedisLockManager redisLockManager;
     private final ReserveSeatUseCase reserveSeatUseCase;
 
-    public void reserveSeat(Long concertId, Long seatId, Long userId) {
+    public kr.hhplus.be.server.domain.reservation.Reservation reserveSeat(Long concertId, Long seatId, Long userId, String token) {
         String lockKey = "lock:seat:" + concertId + ":" + seatId;
         // TTL 5초: 트랜잭션 및 네트워크 대기 시간을 고려하여 설정 (기획/기술 협의 가정)
         String holderId = redisLockManager.acquireLock(lockKey, Duration.ofSeconds(5));
@@ -25,7 +25,7 @@ public class ReserveSeatDistributedLockFacade {
         }
 
         try {
-            reserveSeatUseCase.reserve(concertId, seatId, userId);
+            return reserveSeatUseCase.reserve(new ReserveSeatUseCase.Command(userId, seatId, token));
         } finally {
             redisLockManager.releaseLock(lockKey, holderId);
         }

@@ -21,17 +21,14 @@ public class ReservationController {
     @PostMapping
     public Reservation reserve(@RequestBody ReservationRequest request) {
         // STEP 6: 분산락 적용 버전 사용 (기존 interactor 직접 호출 대신 facade 호출)
-        // 실제 운영 환경이라면 기존 interactor를 감싸는 facade로 대체합니다.
-        // 여기서는 학습 목적으로 concertId를 request에서 가져온다고 가정하거나, seatId로 조회 로직이 facade 안에 있어야 함.
-        // 기존 Command 구조를 유지하기 위해 facade 내부를 수정하거나 여기서 concertId를 넘겨야 함.
         // 편의상 concertId를 1L로 고정하거나 request에 추가되었다고 가정.
         Long concertId = 1L; 
-        reserveSeatDistributedLockFacade.reserveSeat(concertId, request.getSeatId(), request.getMemberId());
-        
-        // 결과 반환을 위해 기존 로직 유지 (실제로는 facade가 결과를 반환해야 함)
-        return reserveSeatUseCase.reserve(new ReserveSeatUseCase.Command(
-                request.getMemberId(), request.getSeatId(), request.getToken()
-        ));
+        return reserveSeatDistributedLockFacade.reserveSeat(
+                concertId, 
+                request.getSeatId(), 
+                request.getMemberId(), 
+                request.getToken()
+        );
     }
 
     @PostMapping("/{reservationId}/confirm")

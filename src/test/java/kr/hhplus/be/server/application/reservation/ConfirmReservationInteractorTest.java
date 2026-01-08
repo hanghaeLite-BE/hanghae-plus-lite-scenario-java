@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.reservation;
 
+import kr.hhplus.be.server.application.concert.ConcertRankingService;
 import kr.hhplus.be.server.application.concert.SeatRepositoryPort;
 import kr.hhplus.be.server.application.member.MemberRepositoryPort;
 import kr.hhplus.be.server.domain.concert.Seat;
@@ -33,6 +34,8 @@ class ConfirmReservationInteractorTest {
     private SeatRepositoryPort seatRepository;
     @Mock
     private PaymentRepositoryPort paymentRepository;
+    @Mock
+    private ConcertRankingService concertRankingService;
 
     @InjectMocks
     private ConfirmReservationInteractor confirmReservationInteractor;
