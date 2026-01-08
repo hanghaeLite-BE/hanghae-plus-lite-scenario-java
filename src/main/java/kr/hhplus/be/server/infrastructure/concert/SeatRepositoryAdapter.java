@@ -42,4 +42,14 @@ public class SeatRepositoryAdapter implements SeatRepositoryPort {
     public int releaseExpiredSeats(LocalDateTime now) {
         return seatJpaRepository.releaseExpiredSeats(now);
     }
+
+    @Override
+    public long countConfirmedSeatsByConcertId(Long concertId) {
+        return seatJpaRepository.countConfirmedSeatsByConcertId(concertId);
+    }
+
+    @Override
+    public long countTotalSeatsByConcertId(Long concertId) {
+        return seatJpaRepository.countTotalSeatsByConcertId(concertId);
+    }
 }

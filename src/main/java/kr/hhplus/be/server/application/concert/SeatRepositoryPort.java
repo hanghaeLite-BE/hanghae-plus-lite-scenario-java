@@ -10,4 +10,6 @@ public interface SeatRepositoryPort {
     void save(Seat seat);
     boolean reserveAtomically(Long seatId, LocalDateTime reservedUntil);
     int releaseExpiredSeats(LocalDateTime now);
+    long countConfirmedSeatsByConcertId(Long concertId);
+    long countTotalSeatsByConcertId(Long concertId);
 }

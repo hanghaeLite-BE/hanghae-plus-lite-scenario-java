@@ -22,4 +22,10 @@ public interface SeatJpaRepository extends JpaRepository<SeatEntity, Long> {
     @Query("UPDATE SeatEntity s SET s.status = 'AVAILABLE', s.reservedUntil = null " +
            "WHERE s.status = 'RESERVED' AND s.reservedUntil < :now")
     int releaseExpiredSeats(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(s) FROM SeatEntity s WHERE s.concertId = :concertId AND s.status = 'CONFIRMED'")
+    long countConfirmedSeatsByConcertId(@Param("concertId") Long concertId);
+
+    @Query("SELECT COUNT(s) FROM SeatEntity s WHERE s.concertId = :concertId")
+    long countTotalSeatsByConcertId(@Param("concertId") Long concertId);
 }
