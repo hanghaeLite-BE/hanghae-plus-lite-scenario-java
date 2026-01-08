@@ -9,9 +9,13 @@ public interface ConcertRankingPort {
     List<RankingResponse> getTopRankings(int limit);
 
     @Getter
-    @AllArgsConstructor
     class RankingResponse {
-        private Long concertId;
-        private Long score;
+        private final Long concertId;
+        private final Long score;
+
+        public RankingResponse(Long concertId, Long score) {
+            this.concertId = concertId;
+            this.score = score;
+        }
     }
 }

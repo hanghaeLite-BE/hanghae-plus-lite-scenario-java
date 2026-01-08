@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.presentation.concert;
 
+import kr.hhplus.be.server.application.concert.ConcertRankingPort;
 import kr.hhplus.be.server.application.concert.ConcertRankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

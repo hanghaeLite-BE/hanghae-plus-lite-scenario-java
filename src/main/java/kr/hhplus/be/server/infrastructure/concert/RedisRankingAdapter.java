@@ -71,6 +71,6 @@ public class RedisRankingAdapter implements ConcertRankingPort {
                         Long.valueOf(tuple.getValue()),
                         tuple.getScore() != null ? tuple.getScore().longValue() : 0L
                 ))
-                .collect(Collectors.toList());
+                .toList();
     }
 }
