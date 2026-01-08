@@ -40,8 +40,7 @@ public class SeatRepositoryAdapter implements SeatRepositoryPort {
         int updatedCount = seatJpaRepository.reserveSeatAtomically(
                 seatId, 
                 SeatStatus.RESERVED, 
-                reservedUntil, 
-                LocalDateTime.now()
+                reservedUntil
         );
         return updatedCount == 1;
     }
