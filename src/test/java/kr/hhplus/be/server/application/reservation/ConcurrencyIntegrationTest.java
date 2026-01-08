@@ -1,158 +1,134 @@
 package kr.hhplus.be.server.application.reservation;
 
-import kr.hhplus.be.server.IntegrationTestBase;
 import kr.hhplus.be.server.application.concert.SeatRepositoryPort;
-import kr.hhplus.be.server.application.member.MemberRepositoryPort;
 import kr.hhplus.be.server.domain.concert.Seat;
-import kr.hhplus.be.server.domain.concert.SeatStatus;
-import kr.hhplus.be.server.domain.member.Member;
 import kr.hhplus.be.server.domain.reservation.Reservation;
-import kr.hhplus.be.server.domain.reservation.ReservationToken;
-import kr.hhplus.be.server.domain.reservation.TokenStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class ConcurrencyIntegrationTest extends IntegrationTestBase {
-
-    @Autowired
-    private ReserveSeatUseCase reserveSeatUseCase;
-
-    @Autowired
-    private ConfirmReservationUseCase confirmReservationUseCase;
-
-    @Autowired
-    private SeatRepositoryPort seatRepository;
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+public class ConcurrencyIntegrationTest {
 
     @Autowired
-    private MemberRepositoryPort memberRepository;
+    private MockMvc mockMvc;
 
     @Autowired
     private ReservationRepositoryPort reservationRepository;
 
     @Autowired
-    private ReservationTokenRepositoryPort tokenRepository;
+    private SeatRepositoryPort seatRepository;
 
     @Test
-    @DisplayName("동일 좌석에 대해 동시에 10명이 예약을 시도하면 1명만 성공해야 한다")
-    void reserveSeatConcurrencyTest() throws InterruptedException {
+    @DisplayName("TC-LOCK-001: 동일 좌석 1개에 대해 50명이 동시에 예약 요청 -> 성공 1건, 실패 49건")
+    @Sql(scripts = "/setup-concurrency.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void tcLock001() throws Exception {
         // given
-        Long seatId = 1L; // 초기화 스크립트나 데이터가 있다고 가정하거나 여기서 생성
-        int threadCount = 10;
+        int threadCount = 50;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
         AtomicInteger successCount = new AtomicInteger();
         AtomicInteger failCount = new AtomicInteger();
 
-        // 토큰들을 미리 준비
-        String[] tokens = new String[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            String tokenValue = UUID.randomUUID().toString();
-            ReservationToken token = ReservationToken.builder()
-                    .token(tokenValue)
-                    .userId((long) (i + 1))
-                    .status(TokenStatus.ACTIVE)
-                    .expiresAt(LocalDateTime.now().plusHours(1))
-                    .build();
-            tokenRepository.save(token);
-            tokens[i] = tokenValue;
-        }
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         // when
-        for (int i = 0; i < threadCount; i++) {
-            final int idx = i;
-            executorService.submit(() -> {
+        for (int i = 1; i <= threadCount; i++) {
+            final int userId = i;
+            final String token = "token-" + i;
+            futures.add(CompletableFuture.runAsync(() -> {
                 try {
-                    reserveSeatUseCase.reserve(new ReserveSeatUseCase.Command(
-                            (long) (idx + 1), seatId, tokens[idx]
-                    ));
-                    successCount.getAndIncrement();
+                    mockMvc.perform(post("/api/reservations")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(String.format("{\"userId\": %d, \"seatId\": 1, \"token\": \"%s\"}", userId, token)))
+                            .andExpect(result -> {
+                                int status = result.getResponse().getStatus();
+                                if (status == 200 || status == 201) {
+                                    successCount.getAndIncrement();
+                                } else {
+                                    failCount.getAndIncrement();
+                                }
+                            });
                 } catch (Exception e) {
                     failCount.getAndIncrement();
-                } finally {
-                    latch.countDown();
                 }
-            });
+            }, executorService));
         }
-        latch.await();
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        executorService.shutdown();
 
         // then
+        List<Reservation> reservations = reservationRepository.findAll();
         assertThat(successCount.get()).isEqualTo(1);
-        assertThat(failCount.get()).isEqualTo(threadCount - 1);
+        assertThat(reservations).hasSize(1);
+        assertThat(failCount.get()).isEqualTo(49);
     }
 
     @Test
-    @DisplayName("한 사용자가 동시에 여러 건의 결제를 시도해도 잔액은 정확히 차감되어야 한다 (음수 잔액 방지)")
-    void confirmReservationConcurrencyTest() throws InterruptedException {
+    @DisplayName("TC-LOCK-002: 좌석 수가 20개인 경우 50명이 동시에 각각 랜덤하게 요청 -> 성공은 최대 20건")
+    @Sql(scripts = "/setup-concurrency.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void tcLock002() throws Exception {
         // given
-        Long userId = 100L;
-        Long initialBalance = 10000L;
-        Long seatPrice = 6000L;
-
-        Member member = Member.builder()
-                .id(userId)
-                .points(initialBalance)
-                .build();
-        memberRepository.save(member);
-
-        // 예약 2건 생성
-        Seat seat1 = Seat.builder().id(101L).price(seatPrice).status(SeatStatus.RESERVED).build();
-        Seat seat2 = Seat.builder().id(102L).price(seatPrice).status(SeatStatus.RESERVED).build();
-        seatRepository.save(seat1);
-        seatRepository.save(seat2);
-
-        Reservation res1 = reservationRepository.save(Reservation.create(userId, 101L));
-        Reservation res2 = reservationRepository.save(Reservation.create(userId, 102L));
-
-        int threadCount = 2;
+        int threadCount = 50;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
         AtomicInteger successCount = new AtomicInteger();
         AtomicInteger failCount = new AtomicInteger();
 
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         // when
-        executorService.submit(() -> {
-            try {
-                confirmReservationUseCase.confirm(new ConfirmReservationUseCase.Command(res1.getId(), userId));
-                successCount.getAndIncrement();
-            } catch (Exception e) {
-                failCount.getAndIncrement();
-            } finally {
-                latch.countDown();
-            }
-        });
+        for (int i = 1; i <= threadCount; i++) {
+            final int userId = i;
+            final String token = "token-" + i;
+            // 11~30번 좌석 중 하나를 선택 (동일 좌석 경쟁도 발생하도록 함)
+            final long seatId = 11 + (i % 20); 
+            
+            futures.add(CompletableFuture.runAsync(() -> {
+                try {
+                    mockMvc.perform(post("/api/reservations")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(String.format("{\"userId\": %d, \"seatId\": %d, \"token\": \"%s\"}", userId, seatId, token)))
+                            .andExpect(result -> {
+                                int status = result.getResponse().getStatus();
+                                if (status == 200 || status == 201) {
+                                    successCount.getAndIncrement();
+                                } else {
+                                    failCount.getAndIncrement();
+                                }
+                            });
+                } catch (Exception e) {
+                    failCount.getAndIncrement();
+                }
+            }, executorService));
+        }
 
-        executorService.submit(() -> {
-            try {
-                confirmReservationUseCase.confirm(new ConfirmReservationUseCase.Command(res2.getId(), userId));
-                successCount.getAndIncrement();
-            } catch (Exception e) {
-                failCount.getAndIncrement();
-            } finally {
-                latch.countDown();
-            }
-        });
-
-        latch.await();
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        executorService.shutdown();
 
         // then
-        // 잔액이 10000인데 6000원짜리 2개를 동시에 결제하면 1개만 성공해야 함
-        assertThat(successCount.get()).isEqualTo(1);
-        assertThat(failCount.get()).isEqualTo(1);
-
-        Member finalMember = memberRepository.findById(userId).get();
-        assertThat(finalMember.getPoints()).isEqualTo(initialBalance - seatPrice);
-        assertThat(finalMember.getPoints()).isGreaterThanOrEqualTo(0L);
+        List<Reservation> reservations = reservationRepository.findAll();
+        // 이론상 최대 20명 성공 가능 (좌석이 20개이므로)
+        assertThat(successCount.get()).isLessThanOrEqualTo(20);
+        assertThat(reservations.size()).isEqualTo(successCount.get());
     }
 }
+

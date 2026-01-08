@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/concerts")
+@RequestMapping("/api/concerts")
 public class ConcertController {
+
     private final GetConcertsUseCase getConcertsUseCase;
 
     public ConcertController(GetConcertsUseCase getConcertsUseCase) {
@@ -16,12 +17,16 @@ public class ConcertController {
     }
 
     @GetMapping
-    public List<Concert> getConcerts() {
-        return getConcertsUseCase.findAll();
+    public List<Concert> getConcerts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id:desc") String sort
+    ) {
+        return getConcertsUseCase.findAll(page, size, sort);
     }
 
-    @GetMapping("/{concertId}")
-    public Concert getConcert(@PathVariable Long concertId) {
-        return getConcertsUseCase.findById(concertId);
+    @GetMapping("/{id}")
+    public Concert getConcert(@PathVariable Long id) {
+        return getConcertsUseCase.findById(id);
     }
 }
