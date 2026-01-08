@@ -1,5 +1,10 @@
 package kr.hhplus.be.server.application.reservation;
 
 public interface ConfirmReservationUseCase {
-    void execute(Long reservationId, Long memberId);
+    void confirm(Command command);
+
+    record Command(
+            Long reservationId,
+            Long userId
+    ) {}
 }

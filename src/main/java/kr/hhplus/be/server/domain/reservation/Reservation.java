@@ -31,8 +31,10 @@ public class Reservation {
     }
 
     public Long getId() { return id; }
+    public Long getUserId() { return memberId; }
     public Long getMemberId() { return memberId; }
     public Long getSeatId() { return seatId; }
     public ReservationStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
+

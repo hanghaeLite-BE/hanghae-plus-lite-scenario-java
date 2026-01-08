@@ -4,7 +4,7 @@ import kr.hhplus.be.server.domain.concert.Seat;
 
 public class SeatMapper {
     public static Seat toDomain(SeatEntity entity) {
-        return new Seat(entity.getId(), entity.getConcertId(), entity.getSeatNo(), entity.getStatus(), entity.getPrice());
+        return new Seat(entity.getId(), entity.getConcertId(), entity.getSeatNo(), entity.getStatus(), entity.getPrice(), entity.getReservedUntil());
     }
 
     public static SeatEntity toEntity(Seat domain) {
@@ -14,6 +14,7 @@ public class SeatMapper {
         entity.setSeatNo(domain.getSeatNo());
         entity.setStatus(domain.getStatus());
         entity.setPrice(domain.getPrice());
+        entity.setReservedUntil(domain.getReservedUntil());
         return entity;
     }
 }

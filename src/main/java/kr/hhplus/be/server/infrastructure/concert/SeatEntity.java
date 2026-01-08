@@ -18,8 +18,12 @@ public class SeatEntity {
 
     private Long price;
 
+    private java.time.LocalDateTime reservedUntil;
+
     public SeatEntity() {}
 
+    public java.time.LocalDateTime getReservedUntil() { return reservedUntil; }
+    public void setReservedUntil(java.time.LocalDateTime reservedUntil) { this.reservedUntil = reservedUntil; }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getConcertId() { return concertId; }
