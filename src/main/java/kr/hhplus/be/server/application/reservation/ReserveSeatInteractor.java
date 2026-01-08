@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.reservation;
 
+import kr.hhplus.be.server.application.concert.ConcertRankingService;
 import kr.hhplus.be.server.application.concert.SeatRepositoryPort;
 import kr.hhplus.be.server.domain.reservation.Reservation;
 import kr.hhplus.be.server.domain.reservation.ReservationToken;
@@ -14,13 +15,16 @@ public class ReserveSeatInteractor implements ReserveSeatUseCase {
     private final SeatRepositoryPort seatRepository;
     private final ReservationRepositoryPort reservationRepository;
     private final ReservationTokenRepositoryPort tokenRepository;
+    private final ConcertRankingService concertRankingService;
 
     public ReserveSeatInteractor(SeatRepositoryPort seatRepository,
                                 ReservationRepositoryPort reservationRepository,
-                                ReservationTokenRepositoryPort tokenRepository) {
+                                ReservationTokenRepositoryPort tokenRepository,
+                                ConcertRankingService concertRankingService) {
         this.seatRepository = seatRepository;
         this.reservationRepository = reservationRepository;
         this.tokenRepository = tokenRepository;
+        this.concertRankingService = concertRankingService;
     }
 
     @Override
@@ -50,6 +54,13 @@ public class ReserveSeatInteractor implements ReserveSeatUseCase {
 
         // 4. 예약 레코드 생성
         Reservation reservation = Reservation.create(command.userId(), command.seatId());
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+
+        // 5. 랭킹 갱신 (아쉬운 사례: 비동기 처리나 트랜잭션 분리 없이 직접 호출, concertId를 알기 위해 추가 조회 없이 seatId 사용 등)
+        // 실제로는 seatId가 아니라 concertId여야 하지만, 여기서는 대충 구현하는 것이 목적이므로 seatId를 넘기거나 
+        // 하드코딩된 concertId 1L을 사용하는 식으로 아쉬움을 남김
+        concertRankingService.incrementRanking(1L); 
+
+        return savedReservation;
     }
 }
