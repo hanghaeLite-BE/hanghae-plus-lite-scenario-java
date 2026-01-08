@@ -20,6 +20,7 @@
 - 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/tree/step-02-outstanding
 
 ## STEP 03: 클린 아키텍처
-> STEP 03부터는 가장 많은 수강생이 선택한 '콘서트 예약 서비스'를 기준으로 자료가 준비됩니다.
-- 일반 사례: 
-- 모범 사례: 
+> STEP 03부터는 가장 많은 수강생이 선택한 '콘서트 예약 서비스'를 기준으로 자료를 정리하였습니다.
+> STEP 03 - STEP 06까지는 리뷰 세션에서 리뷰한 코드는 아닙니다. 리뷰 세션에서 보인 각 스탭별 과제물의 특징을 잘 반영하면서 일관성을 유지히여 자습하는데 더 도움이 되도록 개정하였습니다.
+- 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/9
+- 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/10
