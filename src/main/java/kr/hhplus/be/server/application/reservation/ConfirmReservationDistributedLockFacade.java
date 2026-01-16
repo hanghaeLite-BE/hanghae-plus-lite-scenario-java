@@ -25,7 +25,7 @@ public class ConfirmReservationDistributedLockFacade {
         }
 
         try {
-            confirmReservationUseCase.confirm(reservationId, userId);
+            confirmReservationUseCase.confirm(new ConfirmReservationUseCase.Command(reservationId, userId));
         } finally {
             redisLockManager.releaseLock(lockKey, holderId);
         }

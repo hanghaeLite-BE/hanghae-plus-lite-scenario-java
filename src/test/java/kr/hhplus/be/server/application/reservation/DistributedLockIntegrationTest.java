@@ -45,7 +45,7 @@ public class DistributedLockIntegrationTest extends IntegrationTestBase {
         Long seatId = 1L;
         // 테스트용 좌석 상태 초기화 (사용 가능 상태로)
         Seat seat = seatRepositoryPort.findById(seatId).orElseThrow();
-        seatRepositoryPort.save(new Seat(seat.getId(), seat.getConcertId(), seat.getSeatNumber(), seat.getPrice(), SeatStatus.AVAILABLE, null));
+        seatRepositoryPort.save(new Seat(seat.getId(), seat.getConcertId(), seat.getSeatNo(), SeatStatus.AVAILABLE, seat.getPrice(), null));
 
         int threadCount = 50;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -57,9 +57,10 @@ public class DistributedLockIntegrationTest extends IntegrationTestBase {
         // when
         for (int i = 0; i < threadCount; i++) {
             long userId = i + 1; // 가상의 유저 ID
+            String token = "test-token-" + userId;
             futures.add(CompletableFuture.runAsync(() -> {
                 try {
-                    reserveSeatDistributedLockFacade.reserveSeat(concertId, seatId, userId);
+                    reserveSeatDistributedLockFacade.reserveSeat(concertId, seatId, userId, token);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();

@@ -8,5 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
+@org.springframework.context.annotation.Import(TestcontainersConfiguration.class)
 public abstract class IntegrationTestBase {
 }
