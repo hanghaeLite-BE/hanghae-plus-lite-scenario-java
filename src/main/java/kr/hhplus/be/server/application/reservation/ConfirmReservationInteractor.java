@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.concert.Seat;
 import kr.hhplus.be.server.domain.member.Member;
 import kr.hhplus.be.server.domain.reservation.Payment;
 import kr.hhplus.be.server.domain.reservation.Reservation;
+import kr.hhplus.be.server.infrastructure.external.DataPlatformClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +21,20 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
     private final SeatRepositoryPort seatRepository;
     private final PaymentRepositoryPort paymentRepository;
     private final ConcertRankingService concertRankingService;
+    private final DataPlatformClient dataPlatformClient;
 
     public ConfirmReservationInteractor(ReservationRepositoryPort reservationRepository,
                                         MemberRepositoryPort memberRepository,
                                         SeatRepositoryPort seatRepository,
                                         PaymentRepositoryPort paymentRepository,
-                                        ConcertRankingService concertRankingService) {
+                                        ConcertRankingService concertRankingService,
+                                        DataPlatformClient dataPlatformClient) {
         this.reservationRepository = reservationRepository;
         this.memberRepository = memberRepository;
         this.seatRepository = seatRepository;
         this.paymentRepository = paymentRepository;
         this.concertRankingService = concertRankingService;
+        this.dataPlatformClient = dataPlatformClient;
     }
 
     @Override
@@ -70,7 +74,29 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
                 .build();
         paymentRepository.save(payment);
 
-        // 4. 랭킹 정보 업데이트 트리거
+        // [문제점] 4. 데이터 플랫폼 전송 (트랜잭션 내부에서 동기 호출)
+        // - 외부 API 호출이 트랜잭션 내부에 섞여 있음
+        // - 네트워크 지연이 전체 응답시간에 영향
+        // - 외부 호출 실패가 DB 트랜잭션 롤백을 유발할 수 있음
+        try {
+            DataPlatformClient.ReservationEventPayload payload = 
+                    new DataPlatformClient.ReservationEventPayload(
+                            reservation.getId(),
+                            member.getId(),
+                            seat.getConcertId(),
+                            seat.getId(),
+                            seat.getPrice(),
+                            LocalDateTime.now()
+                    );
+            dataPlatformClient.postReservationEvent(payload);
+        } catch (Exception e) {
+            // 문제점: 단순히 예외를 다시 던지면 전체 트랜잭션이 롤백됨
+            // 하지만 데이터 플랫폼 전송 실패가 예약 확정을 무효화할 정도의 심각한 문제인가?
+            // 이 부분이 개선되어야 함 (이벤트 기반 비동기 처리로)
+            throw e;
+        }
+
+        // 5. 랭킹 정보 업데이트 트리거
         // DB 정합성 기준 (Source of Truth): 현재까지 확정 판매된 좌석 수를 조회하여 Redis 갱신
         long confirmedCount = seatRepository.countConfirmedSeatsByConcertId(seat.getConcertId());
         long totalSeats = seatRepository.countTotalSeatsByConcertId(seat.getConcertId());
