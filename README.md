@@ -44,8 +44,8 @@
 - 코드 정리(리뷰 세션 내용과는 무관하나, 참고 자료로 첨부): https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/19
 
 ## STEP 08: 이벤트
-- 일반 사례: -
-- 모범 사례: -
+- 일반 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/20
+- 모범 사례: https://github.com/hanghaeLite-BE/hanghae-plus-lite-scenario-java/pull/21
 
 ## STEP 09: Kafka
 - 일반 사례: -
