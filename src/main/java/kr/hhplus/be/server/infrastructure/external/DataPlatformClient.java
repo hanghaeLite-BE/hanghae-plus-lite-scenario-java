@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.infrastructure.external;
 
+import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -63,17 +64,22 @@ public class DataPlatformClient {
 
     /**
      * 예약 이벤트 페이로드
+     * STEP9: Kafka 메시지 변환용 DTO
      */
+    @Builder
     public static class ReservationEventPayload {
+        private final String eventId;        // Kafka에서 전달받은 UUID (추적용)
         private final Long reservationId;
         private final Long userId;
         private final Long concertId;
         private final Long seatId;
         private final Long paidAmount;
-        private final LocalDateTime occurredAt;
+        private final String occurredAt;    // ISO-8601 형식 문자열
 
-        public ReservationEventPayload(Long reservationId, Long userId, Long concertId, 
-                                     Long seatId, Long paidAmount, LocalDateTime occurredAt) {
+        // Lombok @Builder가 생성하는 생성자
+        public ReservationEventPayload(String eventId, Long reservationId, Long userId, Long concertId, 
+                                     Long seatId, Long paidAmount, String occurredAt) {
+            this.eventId = eventId;
             this.reservationId = reservationId;
             this.userId = userId;
             this.concertId = concertId;
@@ -82,11 +88,12 @@ public class DataPlatformClient {
             this.occurredAt = occurredAt;
         }
 
+        public String getEventId() { return eventId; }
         public Long getReservationId() { return reservationId; }
         public Long getUserId() { return userId; }
         public Long getConcertId() { return concertId; }
         public Long getSeatId() { return seatId; }
         public Long getPaidAmount() { return paidAmount; }
-        public LocalDateTime getOccurredAt() { return occurredAt; }
+        public String getOccurredAt() { return occurredAt; }
     }
 }
