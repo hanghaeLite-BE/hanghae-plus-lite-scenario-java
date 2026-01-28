@@ -81,22 +81,16 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
                 .build();
         paymentRepository.save(payment);
 
-        // [STEP9 변환] 4. 예약 확정 이벤트를 Kafka로 발행
-        // STEP8: Application Event + @TransactionalEventListener(AFTER_COMMIT)
-        // └─ 프로세스 내부 이벤트 (트랜잭션과 외부 호출 분리)
-        //
-        // STEP9: Kafka 메시지 발행 (일반 사례)
-        // └─ 프로세스 외부 메시지 브로커 (분산 시스템에서 신뢰할 수 있는 전송)
-        //
-        // 장점:
-        // 1. 여러 서비스가 같은 이벤트 구독 가능 (확장성)
-        // 2. 메시지 히스토리 보존 (감사 추적)
-        // 3. 비동기 처리로 응답 시간 단축
+        // [STEP9 개선 사례] 4. 예약 확정 이벤트를 Kafka로 발행 (커밋 이후 보장)
         // 
-        // 기초 수준 구현 (개선 사례에서 고도화):
-        // - Fire-and-forget (재시도 로직 없음)
-        // - 단순 JSON 직렬화
-        // - Consumer 실패 시 로그만 기록
+        // TransactionSynchronizationManager를 사용하여 다음을 보장한다:
+        // 1. 트랜잭션 커밋 이후에만 Kafka 메시지 발행
+        // 2. 롤백 시 메시지 발행 취소 (정합성)
+        // 3. 메시지 발행 실패가 도메인 트랜잭션에 영향 없음
+        //
+        // Topic: concert.reservation.completed.v1 (버전 포함)
+        // Key: reservationId (같은 예약은 같은 partition)
+        // Payload: eventId, reservationId, userId, concertId, seatId, paidAmount, occurredAt
         
         String eventId = UUID.randomUUID().toString();
         ReservationEventMessage kafkaMessage = ReservationEventMessage.builder()
@@ -109,7 +103,8 @@ public class ConfirmReservationInteractor implements ConfirmReservationUseCase {
                 .occurredAt(LocalDateTime.now().toString())
                 .build();
         
-        reservationEventProducer.publishReservationCompleted(kafkaMessage);
+        // [개선] 새로운 메서드: 커밋 이후 발행 보장
+        reservationEventProducer.publishReservationCompletedAfterCommit(kafkaMessage);
         
         // [보존] Application Event는 아직 유지 (기존 STEP8 리스너가 있을 경우 호환)
         // 개선 사례에서는 완전히 제거할 수 있음
