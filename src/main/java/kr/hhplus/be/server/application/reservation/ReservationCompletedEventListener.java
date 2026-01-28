@@ -51,15 +51,17 @@ public class ReservationCompletedEventListener {
                     event.getEventId(), event.getReservationId());
 
             // 데이터 플랫폼 전송용 페이로드 구성
+            // STEP8에서 STEP9로의 호환성 유지: Application Event에서 Kafka 메시지로 변환
             DataPlatformClient.ReservationEventPayload payload = 
-                    new DataPlatformClient.ReservationEventPayload(
-                            event.getReservationId(),
-                            event.getUserId(),
-                            event.getConcertId(),
-                            event.getSeatId(),
-                            event.getPaidAmount(),
-                            event.getOccurredAt()
-                    );
+                    DataPlatformClient.ReservationEventPayload.builder()
+                            .eventId(event.getEventId())
+                            .reservationId(event.getReservationId())
+                            .userId(event.getUserId())
+                            .concertId(event.getConcertId())
+                            .seatId(event.getSeatId())
+                            .paidAmount(event.getPaidAmount())
+                            .occurredAt(event.getOccurredAt().toString())
+                            .build();
 
             // 데이터 플랫폼으로 전송
             dataPlatformClient.postReservationEvent(payload);
